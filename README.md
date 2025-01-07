@@ -1,2 +1,2 @@
 # EKT
-Cloud Task
+Cloud Task's main repository
