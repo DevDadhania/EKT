@@ -1,0 +1,40 @@
+services:
+  task1:
+    build:
+      context: .
+    ports:
+      - "8020"  # Bind host and container port
+    volumes:
+      - E:/STUDY/EKT/task1/task.db:/app/task.db  # Mount SQLite DB
+      - ./logs:/var/log/task1                    # Mount logs directory
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: "1"  # Limit on CPU
+          memory: "256M"
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 30s
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        order: start-first
+
+  backup:
+    image: alpine:latest  # Lightweight image to run the backup task
+    container_name: task1-backup
+    volumes:
+      - E:/STUDY/EKT/task1/task.db:/app/task.db  # Mount SQLite DB
+      - E:/STUDY/EKT/backup:/backup             # Mount local backup directory
+    command: >
+      /bin/sh -c "while true; do cp /app/task.db /backup/task.db.backup_$(date +\%Y-\%m-\%d_\%H-\%M-\%S).db && sleep 10; done"
+    restart: always
