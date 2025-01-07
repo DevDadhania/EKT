@@ -2,24 +2,78 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Manager</title>
 </head>
 <body>
-    <h1>Task Manager</h1>
-    <form method="post" action="/add/">
-        <input type="text" name="title" placeholder="Task Title" required>
-        <input type="text" name="description" placeholder="Description" required>
-        <button type="submit">Add Task</button>
+    <h1>Create a Task</h1>
+    <form action="http://localhost:51119/tasks/" method="POST">
+        <label for="title">Title:</label><br>
+        <input type="text" id="title" name="title"><br><br>
+        <label for="description">Description:</label><br>
+        <input type="text" id="description" name="description"><br><br>
+        <input type="submit" value="Create Task">
     </form>
-    <ul>
-        {% for task in tasks %}
-            <li>
-                {{ task.title }}: {{ task.description }}
-                <form method="post" action="/delete/{{ task.id }}" style="display:inline;">
-                    <button type="submit">Delete</button>
-                </form>
-            </li>
-        {% endfor %}
-    </ul>
+
+    <h2>Get Task by ID</h2>
+    <form action="http://localhost:51119/tasks/" method="GET">
+        <label for="task_id">Task ID:</label><br>
+        <input type="number" id="task_id" name="task_id"><br><br>
+        <input type="submit" value="Get Task">
+    </form>
+
+    <h2>Delete Task by ID</h2>
+    <form action="http://localhost:51119/tasks/" method="POST" id="deleteForm">
+        <label for="task_id_to_delete">Task ID:</label><br>
+        <input type="number" id="task_id_to_delete" name="task_id_to_delete"><br><br>
+        <input type="submit" value="Delete Task">
+    </form>
+
+    <h2>Task List</h2>
+    <div id="task-list">
+        <!-- This will be updated with tasks -->
+    </div>
+
+    <script>
+        // Handling the delete form submission (to call DELETE API)
+        document.getElementById("deleteForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+            const taskIdToDelete = document.getElementById("task_id_to_delete").value;
+
+            if (!taskIdToDelete) {
+                alert("Please provide a Task ID to delete.");
+                return;
+            }
+
+            const response = await fetch(`http://localhost:51481/tasks/${taskIdToDelete}`, {
+                method: "DELETE",
+            });
+
+            if (response.ok) {
+                alert("Task deleted successfully!");
+                document.getElementById("task_id_to_delete").value = "";
+                fetchTasks(); // Refresh the task list
+            } else {
+                alert("Failed to delete task.");
+            }
+        });
+
+        // Fetching all tasks to display on the page
+        async function fetchTasks() {
+            const response = await fetch("http://localhost:51481/tasks/");
+            const tasks = await response.json();
+            const taskListContainer = document.getElementById("task-list");
+            taskListContainer.innerHTML = "";
+
+            tasks.forEach(task => {
+                const taskDiv = document.createElement("div");
+                taskDiv.innerHTML = `<strong>Task ID:</strong> ${task.id} <strong>Title:</strong> ${task.title} <strong>Description:</strong> ${task.description}`;
+                taskListContainer.appendChild(taskDiv);
+            });
+        }
+
+        // Load tasks on page load
+        fetchTasks();
+    </script>
 </body>
 </html>
