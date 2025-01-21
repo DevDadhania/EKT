@@ -1,0 +1,22 @@
+Restore data 
+
+Dbeaver
+\i 'E:/STUDY/dump-db_task-202501211521.sql'
+
+Docker
+db_task
+docker cp "E:\STUDY\dump-db_task-202501220150.sql" db_task:/tmp/dump-db_task-202501220150.sql
+docker exec -i db_task psql -U postgres -d db_task -f /tmp/dump-db_task-202501220150.sql
+
+db_bkup
+docker cp "E:\STUDY\dump-db_task-202501211521.sql" db_bkup:/tmp/dump-db_task-202501211521.sql
+docker exec -i db_bkup psql -U postgres -d db_bkup -f /tmp/dump-db_task-202501211521.sql
+
+Serve from db_bkup
+environment:
+  DB_HOST: db_bkup   
+  DB_NAME: db_bkup   
+  DB_USER: postgres
+  DB_PASSWORD: postgres
+
+docker-compose up -d

@@ -1,0 +1,46 @@
+services:
+  fastapi_app:
+    build:
+      context: .
+    image: dbtask:latest
+    ports:
+      - "8095:8000"
+    volumes:
+      - ./app:/app
+    depends_on:
+      - db_task
+      - db_bkup
+    environment:
+      DB_HOST: db_task
+      DB_NAME: db_task
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+
+  db_task:
+    image: postgres:13
+    container_name: db_task
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: db_task
+    ports:
+      - "5433:5432"  # Changed port to 5433 for db_task
+    volumes:
+      - db_task_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  db_bkup:
+    image: postgres:13   # Use the postgres image
+    container_name: db_bkup
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: db_bkup
+    ports:
+      - "5434:5432"  # Changed port to 5434 for db_bkup
+    volumes:
+      - db_bkup_data:/var/lib/postgresql/data
+
+volumes:
+  db_task_data:
+  db_bkup_data:
